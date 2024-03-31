@@ -13,8 +13,9 @@ namespace glTF_BinExporter
 {
     class RhinoMeshGltfConverter
     {
-        public RhinoMeshGltfConverter(ObjectExportData exportData, int? materialIndex, glTFExportOptions options, bool binary, gltfSchemaDummy dummy, List<byte> binaryBuffer)
+        public RhinoMeshGltfConverter(RhinoDocGltfConverter converter, ObjectExportData exportData, int? materialIndex, glTFExportOptions options, bool binary, gltfSchemaDummy dummy, List<byte> binaryBuffer)
         {
+            this.converter = converter;
             this.exportData = exportData;
             this.materialIndex = materialIndex;
             this.options = options;
@@ -23,6 +24,7 @@ namespace glTF_BinExporter
             this.binaryBuffer = binaryBuffer;
         }
 
+        private RhinoDocGltfConverter converter = null;
         private ObjectExportData exportData;
         private int? materialIndex;
         private glTFExportOptions options = null;
@@ -69,10 +71,13 @@ namespace glTF_BinExporter
 
         private void PreprocessMesh(Mesh rhinoMesh)
         {
+            Transform transform = converter.DocumentToGltfScale;
+
             if (options.MapRhinoZToGltfY)
             {
-                rhinoMesh.Transform(ZtoYUp);
+                transform = transform * ZtoYUp;
             }
+            rhinoMesh.Transform(transform);
 
             rhinoMesh.TextureCoordinates.ReverseTextureCoordinates(1);
         }

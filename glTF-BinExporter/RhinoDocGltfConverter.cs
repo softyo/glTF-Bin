@@ -28,6 +28,11 @@ namespace glTF_BinExporter
             this.binary = binary;
             this.objects = objects;
             this.workflow = workflow;
+
+            //glTF is in meters
+            //https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#coordinate-system-and-units
+            double scaleFactor = RhinoMath.UnitScale(doc.ModelUnitSystem, UnitSystem.Meters);
+            DocumentToGltfScale = Rhino.Geometry.Transform.Scale(Rhino.Geometry.Point3d.Origin, scaleFactor);
         }
 
         public RhinoDocGltfConverter(glTFExportOptions options, bool binary, RhinoDoc doc, LinearWorkflow workflow)
@@ -37,6 +42,11 @@ namespace glTF_BinExporter
             this.binary = binary;
             this.objects = doc.Objects;
             this.workflow = null;
+
+            //glTF is in meters
+            //https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#coordinate-system-and-units
+            double scaleFactor = RhinoMath.UnitScale(doc.ModelUnitSystem, UnitSystem.Meters);
+            DocumentToGltfScale = Rhino.Geometry.Transform.Scale(Rhino.Geometry.Point3d.Origin, scaleFactor);
         }
 
         private RhinoDoc doc = null;
@@ -68,6 +78,8 @@ namespace glTF_BinExporter
                 return defaultMaterial;
             }
         }
+
+        public readonly Rhino.Geometry.Transform DocumentToGltfScale;
         public Gltf ConvertToGltf()
         {
             dummy.Scene = 0;
@@ -103,7 +115,7 @@ namespace glTF_BinExporter
             {
                 int? materialIndex = GetMaterial(exportData.RenderMaterial, exportData.Object);
 
-                RhinoMeshGltfConverter meshConverter = new RhinoMeshGltfConverter(exportData, materialIndex, options, binary, dummy, binaryBuffer);
+                RhinoMeshGltfConverter meshConverter = new RhinoMeshGltfConverter(this, exportData, materialIndex, options, binary, dummy, binaryBuffer);
                 int meshIndex = meshConverter.AddMesh();
 
                 glTFLoader.Schema.Node node = new glTFLoader.Schema.Node()
