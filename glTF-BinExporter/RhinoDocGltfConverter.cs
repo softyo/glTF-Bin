@@ -421,7 +421,17 @@ namespace glTF_BinExporter
                     //Remove bad meshes
                     meshes.RemoveAll(x => x == null || !MeshIsValidForExport(x));
 
-                    item.Meshes = meshes.ToArray();
+                    // Group meshes into one.
+                    Rhino.Geometry.Mesh oneMesh = new Rhino.Geometry.Mesh();
+                    oneMesh.Append(meshes);
+                    oneMesh.Vertices.CombineIdentical(false, true);
+                    oneMesh.Weld(3.14159265358979 / 36.0); // 5 degrees.
+                    oneMesh.Faces.CullDegenerateFaces();
+                    oneMesh.Vertices.CullUnused();
+                    oneMesh.FaceNormals.Clear();
+                    oneMesh.Compact();
+                    oneMesh.Normals.ComputeNormals();
+                    item.Meshes = new Rhino.Geometry.Mesh[] { oneMesh };
                 }
             }
 
